@@ -1,0 +1,29 @@
+{
+    "name": "kfosoft/yii2-app-dynamic-options",
+    "description": "Yii2 Application Dynamic Options",
+    "keywords": [
+        "yii2",
+        "params",
+        "options",
+        "db params",
+        "db options",
+        "yii2 options",
+        "yii2 params",
+        "yii2 db params",
+        "yii2 db options"
+    ],
+    "type": "library",
+    "authors": [
+        {
+            "name": "Cyril Turkevich",
+            "email": "cyril.turkevich@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "kfosoft/php-int-enum-x64": "1.0"
+    },
+    "autoload": {
+        "psr-4": {"kfosoft\\": ""}
+    }
+}
