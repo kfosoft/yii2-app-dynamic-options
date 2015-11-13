@@ -48,7 +48,7 @@ class Option extends ActiveRecord
      */
     public static function tableName()
     {
-        return 'option';
+        return Yii::$app->get('yii2options')->tableName;
     }
 
     /**

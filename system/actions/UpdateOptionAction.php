@@ -36,6 +36,6 @@ class UpdateOptionAction extends Action
             'model' => $model
         ];
 
-        return Yii::$app->request->isAjax ? $this->renderAjax($view, $params) : $this->render($view, $params);
+        return Yii::$app->request->isAjax ? $this->controller->renderAjax($view, $params) : $this->controller->render($view, $params);
     }
 }

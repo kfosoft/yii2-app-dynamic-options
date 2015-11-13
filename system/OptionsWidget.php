@@ -1,5 +1,5 @@
 <?php
-namespace kfosoft\yii2\system\widgets;
+namespace kfosoft\yii2\system;
 
 use \Yii;
 use \yii\bootstrap\Widget;

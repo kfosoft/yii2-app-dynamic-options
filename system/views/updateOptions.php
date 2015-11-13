@@ -9,7 +9,7 @@ use \yii\bootstrap\ActiveForm;
  * @copyright (c) 2014-2015 KFOSoftware Team <kfosoftware@gmail.com>
  */
 
-$this->title = Yii::t('yii2options', 'Update Option #{id} - {key}',['{id}' => $model->id, '{key}' => $model->key]);
+$this->title = Yii::t('yii2options', 'Update Option #{id} - {key}',['id' => $model->id, 'key' => $model->key]);
 ?>
 <div class="yii2options-update">
 

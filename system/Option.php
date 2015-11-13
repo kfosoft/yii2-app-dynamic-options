@@ -6,6 +6,7 @@ use \yii\base\BootstrapInterface;
 use \yii\base\Component;
 use \yii\base\Application;
 use \yii\base\Exception;
+use yii\helpers\ArrayHelper;
 
 /**
  * Application dynamic options.
@@ -56,17 +57,28 @@ class Option extends Component implements BootstrapInterface
     public $updateAction = '';
 
     /** @var string manage view path. */
-    public $manageView = '';
+    public $manageView = '@yii2options/views/manageOptions';
 
     /** @var string update view path. */
-    public $updateView = '';
+    public $updateView = '@yii2options/views/updateOptions';
+
+    public $translations = [
+        'class' => 'yii\i18n\PhpMessageSource',
+        'sourceLanguage' => 'en-US',
+        'basePath' => '@yii2options/messages',
+        'fileMap' => [],
+    ];
 
     /**
      * @inheritdoc
      */
     public function bootstrap($app)
     {
-        $this->registerTranslations();
+        Yii::setAlias('@yii2options', __DIR__);
+        if($app instanceof \yii\console\Application) {
+            $app->controllerMap = ArrayHelper::merge($app->controllerMap, ['options' => '\kfosoft\yii2\system\commands\OptionsController']);
+        }
+
         $this->originalParams = $app->params;
         $this->setOptions();
         if (!Yii::$app->cache->exists($this->cacheKey)) {
@@ -79,15 +91,15 @@ class Option extends Component implements BootstrapInterface
         $app->params = $this->params;
     }
 
+    public function init()
+    {
+        parent::init();
+        $this->registerTranslations();
+    }
+
     public function registerTranslations()
     {
-        $i18n = Yii::$app->i18n;
-        $i18n->translations['yii2options/*'] = [
-            'class' => 'yii\i18n\PhpMessageSource',
-            'sourceLanguage' => 'en-US',
-            'basePath' => '@kfosoft/yii2/system/messages',
-            'fileMap' => [],
-        ];
+        Yii::$app->i18n->translations['yii2options'] = $this->translations;
     }
 
     /**
@@ -131,11 +143,14 @@ class Option extends Component implements BootstrapInterface
     /**
      * Push all options in sql table.
      */
-    protected function push()
+    public function push()
     {
         $options = [];
         $models = [];
-        $this->models = (new $this->modelClass)::findAll();
+
+        /** @var \yii\db\BaseActiveRecord $modelClass */
+        $modelClass = $this->modelClass;
+        $this->models = $modelClass::findAll('');
 
         foreach ($this->models as $model) {
             $models[$model->key] = $model;
@@ -180,7 +195,10 @@ class Option extends Component implements BootstrapInterface
      */
     protected function pull(Application $app)
     {
-        $this->models = (new $this->modelClass)::findAll();
+        /** @var \yii\db\BaseActiveRecord $modelClass */
+        $modelClass = $this->modelClass;
+        $this->models = $modelClass::findAll('');
+
         foreach ($this->models as $model) {
             $this->options[$model->{$this->tableKeyField}] = [
                 'value' => $model->{$this->tableValueField},
