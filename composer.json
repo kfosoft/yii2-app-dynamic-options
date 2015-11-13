@@ -24,6 +24,6 @@
         "kfosoft/php-int-enum-x64": "1.0"
     },
     "autoload": {
-        "psr-4": {"kfosoft\\": ""}
+        "psr-4": {"kfosoft\\yii2\\": ""}
     }
 }
