@@ -69,13 +69,19 @@ class Option extends Component implements BootstrapInterface
         'fileMap' => [],
     ];
 
+    public $connectionName = 'db';
+
     /**
      * @inheritdoc
      */
     public function bootstrap($app)
     {
         Yii::setAlias('@yii2options', __DIR__);
-        if($app instanceof \yii\console\Application) {
+        if($app instanceof \yii\console\Application){
+            $request = $app->request->resolve();
+            if (preg_match('/migrate\//',$request[0])) {
+                return;
+            }
             $app->controllerMap = ArrayHelper::merge($app->controllerMap, ['options' => '\kfosoft\yii2\system\commands\OptionsController']);
         }
 
@@ -168,15 +174,21 @@ class Option extends Component implements BootstrapInterface
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $this->resetDb();
-
             foreach ($this->options as $key => $option) {
                 /** @var \kfosoft\yii2\system\models\Option $model */
                 $model = new $this->modelClass();
                 $model->key = $key;
                 $model->value = $option['value'];
-                $model->save();
+                $model->edit = $option['edit'];
+                $model->comments = $option['comments'];
+                $model->validator = $option['validator'];
+                if(!$model->save()){
+                    var_dump($model->getErrors());
+                }
+                var_dump(123);
+//                $model->save();
             }
-
+var_dump(123);die;
         } catch (Exception $e) {
             Yii::error($e->getMessage());
             $transaction->rollBack();
@@ -199,12 +211,14 @@ class Option extends Component implements BootstrapInterface
         $modelClass = $this->modelClass;
         $this->models = $modelClass::findAll('');
 
-        foreach ($this->models as $model) {
-            $this->options[$model->{$this->tableKeyField}] = [
-                'value' => $model->{$this->tableValueField},
-            ];
+        if(!empty($this->models)) {
+            foreach ($this->models as $model) {
+                $this->options[$model->{$this->tableKeyField}] = [
+                    'value' => $model->{$this->tableValueField},
+                ];
+            }
+            $app->cache->set($this->cacheKey, $this->options);
         }
-        $app->cache->set($this->cacheKey, $this->options);
     }
 
     /**
@@ -222,6 +236,8 @@ class Option extends Component implements BootstrapInterface
      */
     public function resetDb()
     {
-        Yii::$app->db->queryBuilder->truncateTable($this->tableName);
+        /** @var \yii\db\Connection $db */
+        $db = Yii::$app->get($this->connectionName);
+        $db->createCommand($db->queryBuilder->truncateTable($this->tableName))->execute();
     }
 }
