@@ -85,7 +85,7 @@ class Option extends ActiveRecord
     {
         parent::afterValidate();
         if (is_callable($this->afterValidate)) {
-            call_user_func_array($this->afterValidate, [$this, 'afterFind']);
+            call_user_func_array($this->afterValidate, [$this, 'afterValidate']);
         }
     }
 

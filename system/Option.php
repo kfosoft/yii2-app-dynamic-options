@@ -32,6 +32,9 @@ class Option extends Component implements BootstrapInterface
     /** @var array result params. */
     protected $params;
 
+    /** @var array cache options. */
+    protected $cacheOptions = [];
+
     /** @var string table name. */
     public $tableName = 'option';
 
@@ -62,6 +65,7 @@ class Option extends Component implements BootstrapInterface
     /** @var string update view path. */
     public $updateView = '@yii2options/views/updateOptions';
 
+    /** @var array translations i18n. */
     public $translations = [
         'class'          => 'yii\i18n\PhpMessageSource',
         'sourceLanguage' => 'en-US',
@@ -69,9 +73,8 @@ class Option extends Component implements BootstrapInterface
         'fileMap'        => [],
     ];
 
+    /** @var string component db connection. */
     public $connectionName = 'db';
-
-    public $cacheOptions = [];
 
     /**
      * @inheritdoc
