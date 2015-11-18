@@ -63,13 +63,15 @@ class Option extends Component implements BootstrapInterface
     public $updateView = '@yii2options/views/updateOptions';
 
     public $translations = [
-        'class' => 'yii\i18n\PhpMessageSource',
+        'class'          => 'yii\i18n\PhpMessageSource',
         'sourceLanguage' => 'en-US',
-        'basePath' => '@yii2options/messages',
-        'fileMap' => [],
+        'basePath'       => '@yii2options/messages',
+        'fileMap'        => [],
     ];
 
     public $connectionName = 'db';
+
+    public $cacheOptions = [];
 
     /**
      * @inheritdoc
@@ -77,20 +79,23 @@ class Option extends Component implements BootstrapInterface
     public function bootstrap($app)
     {
         Yii::setAlias('@yii2options', __DIR__);
-        if($app instanceof \yii\console\Application){
+        if ($app instanceof \yii\console\Application) {
             $request = $app->request->resolve();
-            if (preg_match('/migrate\//',$request[0])) {
+            if (preg_match('/migrate\//', $request[0])) {
                 return;
             }
-            $app->controllerMap = ArrayHelper::merge($app->controllerMap, ['options' => '\kfosoft\yii2\system\commands\OptionsController']);
+            $app->controllerMap = ArrayHelper::merge($app->controllerMap,
+                ['options' => '\kfosoft\yii2\system\commands\OptionsController']);
         }
 
         $this->originalParams = $app->params;
         $this->setOptions();
         if (!Yii::$app->cache->exists($this->cacheKey)) {
-            $this->pull($app);
+            $this->pull();
         } else {
-            $this->options = $app->cache->get($this->cacheKey);
+            foreach ($app->cache->get($this->cacheKey) as $key => $cacheOption) {
+                $this->options[$key]['value'] = $cacheOption;
+            }
         }
         $this->parseParams();
 
@@ -177,18 +182,12 @@ class Option extends Component implements BootstrapInterface
             foreach ($this->options as $key => $option) {
                 /** @var \kfosoft\yii2\system\models\Option $model */
                 $model = new $this->modelClass();
+                $model->load($option, '');
                 $model->key = $key;
-                $model->value = $option['value'];
-                $model->edit = $option['edit'];
-                $model->comments = $option['comments'];
-                $model->validator = $option['validator'];
                 if(!$model->save()){
-                    var_dump($model->getErrors());
+                    $transaction->rollBack();
                 }
-                var_dump(123);
-//                $model->save();
             }
-var_dump(123);die;
         } catch (Exception $e) {
             Yii::error($e->getMessage());
             $transaction->rollBack();
@@ -197,27 +196,26 @@ var_dump(123);die;
 
         $transaction->commit();
 
-        Yii::$app->cache->set($this->cacheKey, $this->options);
+        $this->setCache();
         return true;
     }
 
     /**
      * Pull all options from sql table.
-     * @param Application $app current application.
      */
-    protected function pull(Application $app)
+    protected function pull()
     {
         /** @var \yii\db\BaseActiveRecord $modelClass */
         $modelClass = $this->modelClass;
         $this->models = $modelClass::findAll('');
 
-        if(!empty($this->models)) {
+        if (!empty($this->models)) {
             foreach ($this->models as $model) {
                 $this->options[$model->{$this->tableKeyField}] = [
                     'value' => $model->{$this->tableValueField},
                 ];
             }
-            $app->cache->set($this->cacheKey, $this->options);
+            $this->setCache();
         }
     }
 
@@ -239,5 +237,15 @@ var_dump(123);die;
         /** @var \yii\db\Connection $db */
         $db = Yii::$app->get($this->connectionName);
         $db->createCommand($db->queryBuilder->truncateTable($this->tableName))->execute();
+        Yii::$app->cache->set($this->cacheKey, null);
+    }
+
+    public function setCache()
+    {
+        foreach($this->options as $key => $option) {
+            $this->cacheOptions[$key] = $option['value'];
+        }
+
+        Yii::$app->cache->set($this->cacheKey, $this->cacheOptions);
     }
 }

@@ -33,6 +33,7 @@ $this->title = Yii::t('yii2options', 'Update Option #{id} - {key}',['id' => $mod
             <?= $form->field($model, 'value')->textInput([
                 'maxlength' => true,
                 'class'  => 'form-control form-field-short',
+                'value' => $model->getValue()
             ]) ?>
 
         </div>

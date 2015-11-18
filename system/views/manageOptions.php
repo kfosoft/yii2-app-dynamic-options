@@ -19,7 +19,14 @@ use \yii\helpers\Html;
         'columns' => [
             'id',
             'key',
-            'value',
+            [
+                'header' => $searchModel->getAttributeLabel('value'),
+                'value' => function($data) {
+                    /** @var \kfosoft\yii2\system\models\Option $data */
+                    return $data->getValue();
+                },
+                'filter' => false,
+            ],
             'comments:ntext',
             'created_at:datetime',
             'updated_at:datetime',

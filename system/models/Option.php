@@ -47,20 +47,23 @@ class Option extends ActiveRecord
     /** @var callable|null event afterSave. */
     public $afterSave;
 
+    /** @var callable|null event getValue. */
+    public $getValue;
+
+    /** @var callable|null event setValue. */
+    public $setValue;
+
     /**
      * @inheritdoc
      */
     public function afterFind()
     {
         parent::afterFind();
+        $this->loadOption(Yii::$app->get('yii2options')->getOption($this->key));
+        $this->value = unserialize(base64_decode($this->value));
         if (is_callable($this->afterFind)) {
             call_user_func_array($this->afterFind, [$this, 'afterFind']);
         }
-
-        $option = Yii::$app->get('yii2options')->getOption($this->key);
-        $this->edit = $option['edit'];
-        $this->comments = $option['comments'];
-        $this->validator = $option['validator'];
     }
 
     /**
@@ -69,6 +72,7 @@ class Option extends ActiveRecord
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
+        $this->value = unserialize(base64_decode($this->value));
         if (is_callable($this->afterSave)) {
             call_user_func_array($this->afterSave, [$this, 'afterSave', $insert, $changedAttributes]);
         }
@@ -102,6 +106,7 @@ class Option extends ActiveRecord
      */
     public function beforeSave($insert)
     {
+        $this->value = base64_encode(serialize($this->value));
         if (is_callable($this->beforeSave)) {
             return parent::beforeSave($insert) && call_user_func_array($this->beforeSave, [$this, 'beforeSave', $insert]);
         }
@@ -161,7 +166,7 @@ class Option extends ActiveRecord
                 }
             ],
             [['created_at', 'updated_at'], 'integer', 'min' => IntegerX64::INT_MIN, 'max' => IntegerX64::INT_MAX],
-            [['validator', 'edit', 'comments'], 'safe'],
+            [['validator', 'edit', 'comments', 'beforeValidate', 'afterValidate', 'afterFind', 'beforeSave', 'afterSave', 'getValue', 'setValue'], 'safe'],
         ];
     }
 
@@ -190,5 +195,42 @@ class Option extends ActiveRecord
                 'class' => TimestampBehavior::className(),
             ],
         ];
+    }
+
+    /**
+     * Returns value of key.
+     * @return mixed value of key.
+     */
+    public function getValue()
+    {
+        return is_callable($this->getValue) ? call_user_func($this->getValue, $this->value) : $this->value;
+    }
+
+
+    /**
+     * Set value of key.
+     * @param mixed $value value of key.
+     * @return $this
+     */
+    public function setValue($value)
+    {
+        $this->value = is_callable($this->setValue) ? call_user_func($this->setValue, $value) : $value;
+        return $this;
+    }
+
+    /**
+     * Load class options.
+     * @param array $attributes class attributes.
+     * @return $this
+     */
+    public function loadOption(array $attributes)
+    {
+        foreach ($attributes as $attribute => $value) {
+            if (property_exists($this, $attribute)) {
+                $this->{$attribute} = $value;
+            }
+        }
+
+        return $this;
     }
 }

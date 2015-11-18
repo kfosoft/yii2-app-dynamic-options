@@ -26,9 +26,13 @@ class UpdateOptionAction extends Action
         if (!$model) {
             throw new NotFoundHttpException;
         }
+        $postData = Yii::$app->request->post();
+        if(isset($postData['Option']['value'])){
+            $model->setValue($postData['Option']['value']);
+            if($model->save()) {
+                return $this->controller->redirect([Yii::$app->get('yii2options')->manageAction]);
+            }
 
-        if($model->load(Yii::$app->request->post()) && $model->save()){
-            return $this->controller->redirect([Yii::$app->get('yii2options')->manageAction]);
         }
 
         $view = Yii::$app->get('yii2options')->updateView;
