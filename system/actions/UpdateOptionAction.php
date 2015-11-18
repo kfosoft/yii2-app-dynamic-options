@@ -30,6 +30,7 @@ class UpdateOptionAction extends Action
         if(isset($postData['Option']['value'])){
             $model->setValue($postData['Option']['value']);
             if($model->save()) {
+                Yii::$app->get('yii2options')->updateCacheParam($model->key, $model->value);
                 return $this->controller->redirect([Yii::$app->get('yii2options')->manageAction]);
             }
 

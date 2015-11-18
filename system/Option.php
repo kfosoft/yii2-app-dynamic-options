@@ -102,12 +102,18 @@ class Option extends Component implements BootstrapInterface
         $app->params = $this->params;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function init()
     {
         parent::init();
         $this->registerTranslations();
     }
 
+    /**
+     * Register i18n.
+     */
     public function registerTranslations()
     {
         Yii::$app->i18n->translations['yii2options'] = $this->translations;
@@ -240,6 +246,9 @@ class Option extends Component implements BootstrapInterface
         Yii::$app->cache->set($this->cacheKey, null);
     }
 
+    /**
+     * Set updated options in cache.
+     */
     public function setCache()
     {
         foreach($this->options as $key => $option) {
@@ -247,5 +256,16 @@ class Option extends Component implements BootstrapInterface
         }
 
         Yii::$app->cache->set($this->cacheKey, $this->cacheOptions);
+    }
+
+    /**
+     * Update option in cache.
+     * @param string $key key of param.
+     * @param string $value value of param.
+     */
+    public function updateCacheParam($key, $value)
+    {
+        $this->options[$key]['value'] = $value;
+        $this->setCache();
     }
 }
