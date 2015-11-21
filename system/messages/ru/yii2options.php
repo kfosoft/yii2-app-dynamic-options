@@ -12,5 +12,5 @@ return [
     'Options'                                                => 'Параметры',
     'Param "{param}" cannot be empty'                        => 'Параметр "{param}" не может быть пустым',
     'Param "{param}" length cannot be more than 255 symbols' => 'Длина значения "{param}" не должна превышать 255 символов',
-    'Param "{param}" must have type "integer"!'              => 'Параметр "{param}" должен иметь тип "integer"!',
+    'Param "{param}" must have type "integer"!'              => 'Параметр "{param}" должен быть цифрой!',
 ];
