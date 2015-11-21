@@ -149,11 +149,7 @@ class Option extends ActiveRecord
                             }
                             break;
                         case $this->validator === 'integer' :
-                            if (!is_int($this->value)) {
-                                $this->addError($this->key,
-                                    Yii::t('yii2options', 'Param "{param}" must have type "integer"!',
-                                        ['param' => $this->key]));
-                            } elseif (strlen((string)$this->value) > 255) {
+                            if (strlen((string)$this->value) > 255) {
                                 $this->addError($this->key,
                                     Yii::t('yii2options', 'Param "{param}" length cannot be more than 255 symbols',
                                         ['param' => $this->key]));
