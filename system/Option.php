@@ -246,7 +246,7 @@ class Option extends Component implements BootstrapInterface
         /** @var \yii\db\Connection $db */
         $db = Yii::$app->get($this->connectionName);
         $db->createCommand($db->queryBuilder->truncateTable($this->tableName))->execute();
-        Yii::$app->cache->set($this->cacheKey, null);
+        Yii::$app->cache->delete($this->cacheKey);
     }
 
     /**
