@@ -86,6 +86,8 @@ class Option extends Component implements BootstrapInterface
             $request = $app->request->resolve();
             if (preg_match('/migrate\//', $request[0])) {
                 return;
+            } elseif (preg_match('/migrate/', $request[0])) {
+                return;
             }
             $app->controllerMap = ArrayHelper::merge($app->controllerMap,
                 ['options' => '\kfosoft\yii2\system\commands\OptionsController']);
