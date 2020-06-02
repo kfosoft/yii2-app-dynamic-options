@@ -2,97 +2,124 @@
 
 namespace kfosoft\yii2\system\models;
 
-use \Yii;
+use kfosoft\enums\IntegerX64;
+use kfosoft\yii2\system\Option as OptionComponent;
+use Yii;
 use yii\base\Exception;
-use \yii\db\ActiveRecord;
-use \yii\behaviors\TimestampBehavior;
-
-use \kfosoft\enums\IntegerX64;
+use yii\base\InvalidConfigException;
+use yii\db\ActiveRecord;
+use yii\behaviors\TimestampBehavior;
 
 /**
- * This is the model class for table "Options".
- * @property integer $id primary key.
- * @property string $key option key.
- * @property string $value option value.
- * @property string $created_at option created at.
- * @property string $updated_at option updated at.
+ * @property int     $id         primary key.
+ * @property string  $key        option key.
+ * @property string  $value      option value.
+ * @property string  $created_at option created at.
+ * @property string  $updated_at option updated at.
+ *
  * @package kfosoft\yii2\system\models
- * @version 1.0
- * @copyright (c) 2014-2015 KFOSOFT Team <kfosoftware@gmail.com>
- * @author Cyril Turkevich
+ * @version 20.06
+ * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class Option extends ActiveRecord
 {
-    /** @var bool edit param option. */
+    /**
+     * @var bool edit param option
+     */
     public $edit;
 
-    /** @var string comments param option. */
+    /**
+     * @var string comments param option
+     */
     public $comments;
 
-    /** @var string param validator. */
+    /**
+     * @var string param validator
+     */
     public $validator;
 
-    /** @var callable|null event beforeValidate. */
+    /**
+     * @var callable|null event beforeValidate
+     */
     public $beforeValidate;
 
-    /** @var callable|null event afterValidate. */
+    /**
+     * @var callable|null event afterValidate
+     */
     public $afterValidate;
 
-    /** @var callable|null event afterFind. */
+    /**
+     * @var callable|null event afterFind
+     */
     public $afterFind;
 
-    /** @var callable|null event beforeSave. */
+    /**
+     * @var callable|null event beforeSave
+     */
     public $beforeSave;
 
-    /** @var callable|null event afterSave. */
+    /**
+     * @var callable|null event afterSave
+     */
     public $afterSave;
 
-    /** @var callable|null event getValue. */
+    /**
+     * @var callable|null event getValue
+     */
     public $getValue;
 
-    /** @var callable|null event setValue. */
+    /**
+     * @var callable|null event setValue
+     */
     public $setValue;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     * @throws InvalidConfigException
      */
-    public function afterFind()
+    public function afterFind(): void
     {
         parent::afterFind();
-        $this->loadOption(Yii::$app->get('yii2options')->getOption($this->key));
+
+        $this->loadOption(Yii::$app->get(OptionComponent::COMPONENT_NAME)->getOption($this->key));
+
         $this->value = unserialize(base64_decode($this->value));
+
         if (is_callable($this->afterFind)) {
             call_user_func_array($this->afterFind, [$this, 'afterFind']);
         }
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function afterSave($insert, $changedAttributes)
+    public function afterSave($insert, $changedAttributes): void
     {
         parent::afterSave($insert, $changedAttributes);
+
         $this->value = unserialize(base64_decode($this->value));
+
         if (is_callable($this->afterSave)) {
             call_user_func_array($this->afterSave, [$this, 'afterSave', $insert, $changedAttributes]);
         }
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function afterValidate()
+    public function afterValidate(): void
     {
         parent::afterValidate();
+
         if (is_callable($this->afterValidate)) {
             call_user_func_array($this->afterValidate, [$this, 'afterValidate']);
         }
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function beforeValidate()
+    public function beforeValidate(): bool
     {
         if (is_callable($this->beforeValidate)) {
             return parent::beforeValidate() && call_user_func_array($this->beforeValidate, [$this, 'beforeValidate']);
@@ -102,9 +129,9 @@ class Option extends ActiveRecord
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function beforeSave($insert)
+    public function beforeSave($insert): bool
     {
         $this->value = base64_encode(serialize($this->value));
         if (is_callable($this->beforeSave)) {
@@ -115,17 +142,18 @@ class Option extends ActiveRecord
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     * @throws InvalidConfigException
      */
-    public static function tableName()
+    public static function tableName(): string
     {
-        return Yii::$app->get('yii2options')->tableName;
+        return Yii::$app->get(OptionComponent::COMPONENT_NAME)->tableName;
     }
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['key', 'value'], 'required'],
@@ -173,7 +201,7 @@ class Option extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id'         => Yii::t('yii2options', '#'),
@@ -188,12 +216,10 @@ class Option extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
-            [
-                'class' => TimestampBehavior::className(),
-            ],
+            TimestampBehavior::class,
         ];
     }
 
@@ -210,9 +236,9 @@ class Option extends ActiveRecord
     /**
      * Set value of key.
      * @param mixed $value value of key.
-     * @return $this
+     * @return self
      */
-    public function setValue($value)
+    public function setValue($value): self
     {
         $this->value = is_callable($this->setValue) ? call_user_func($this->setValue, $value) : $value;
         return $this;
@@ -221,9 +247,9 @@ class Option extends ActiveRecord
     /**
      * Load class options.
      * @param array $attributes class attributes.
-     * @return $this
+     * @return self
      */
-    public function loadOption(array $attributes)
+    public function loadOption(array $attributes): self
     {
         foreach ($attributes as $attribute => $value) {
             if (property_exists($this, $attribute)) {

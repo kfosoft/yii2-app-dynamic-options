@@ -21,11 +21,11 @@ Copy migration and up
 ~~~
 or create your migration and configure in config
 ~~~
-    'yii2options'  => [ /** @todo Option component must have name 'yii2options'! */
-            'class'        => '\kfosoft\yii2\system\Option', /* Component class */
+    kfosoft\yii2\system\Option::COMPONENT_NAME  => [ /** @todo Option component must have name 'yii2options'! */
+            'class'        => kfosoft\yii2\system\Option::class, /* Component class */
             'tableName'    => 'Option', /* Optional. By default: 'option'. Table name. */
-            'modelClass'   => '\kfosoft\yii2\system\models\Option', /* Optional. By default: '\kfosoft\yii2\system\models\Option'. Model class. */
-            'modelSearchClass' => '\kfosoft\yii2\system\models\OptionSearch', /* Optional. By default: '\kfosoft\yii2\system\models\OptionSearch'. Search model class. */
+            'modelClass'   => kfosoft\yii2\system\models\Option::class, /* Optional. By default: '\kfosoft\yii2\system\models\Option'. Model class. */
+            'modelSearchClass' => kfosoft\yii2\system\models\OptionSearch::class, /* Optional. By default: '\kfosoft\yii2\system\models\OptionSearch'. Search model class. */
             'tableKeyField' => 'key', /* Optional. By default: 'key'. Table key field. */
             'tableValueField' => 'value', /* Optional. By default: 'value'. Table value field. */
             'cacheKey', => 'yii2options', /* Optional. By default: 'yii2options'. Cache key. */
@@ -44,14 +44,14 @@ or create your migration and configure in config
 ~~~
 and add in bootstrap
 ~~~
-    'bootstrap'      => ['log', 'urlManager', 'yii2options'],
+    'bootstrap'      => ['log', 'urlManager', kfosoft\yii2\system\Option::COMPONENT_NAME],
 ~~~
 
 This extension has two commands
 ~~~
-    - options                         Options Command Controller.
-        options/clear                 Clear db params.
-        options/push                  Push original params.
+- options                            List commands to manage dynamic options.
+    options/clear                    Clear db params in database.
+    options/push                     Push params from application config.
 ~~~
 
 Well done!

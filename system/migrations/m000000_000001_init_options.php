@@ -1,20 +1,20 @@
 <?php
 
-use \yii\db\Schema;
-use \yii\db\Migration;
+use yii\db\Schema;
+use yii\db\Migration;
 
 /**
  * Migration for create options table.
- * @version 1.0
- * @copyright (c) 2014-2015 KFOSOFT Team <kfosoftware@gmail.com>
- * @author Cyril Turkevich
+ *
+ * @version 20.06
+ * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class m000000_000001_init_options extends Migration
 {
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): void
     {
         $this->createTable('option', [
             'id' => Schema::TYPE_PK,
@@ -28,7 +28,7 @@ class m000000_000001_init_options extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown(): void
     {
         $this->dropTable('option');
     }

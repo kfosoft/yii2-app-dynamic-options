@@ -1,16 +1,24 @@
 <?php
-use \yii\grid\GridView;
-use \yii\helpers\Html;
+
+use kfosoft\yii2\system\models\Option as OptionModel;
+use kfosoft\yii2\system\models\OptionSearch as OptionSearchModel;
+use kfosoft\yii2\system\Option as OptionComponent;
+use yii\data\ActiveDataProvider;
+use yii\grid\ActionColumn;
+use yii\grid\GridView;
+use yii\helpers\Html;
+use yii\web\View;
 
 /**
  * Manage yii2 options view.
- * @var \yii\web\View $this
- * @var \yii\data\ActiveDataProvider $dataProvider
- * @var \kfosoft\yii2\system\models\OptionSearch $searchModel
- * @version 1.0
- * @copyright (c) 2014-2015 KFOSOFT Team <kfosoftware@gmail.com>
- * @author Cyril Turkevich
+ *
+ * @var View $this
+ * @var ActiveDataProvider $dataProvider
+ * @var OptionSearchModel $searchModel
  */
+
+/** @var OptionComponent $optionComponent */
+$optionComponent = Yii::$app->get('yii2options');
 ?>
 <div class="yii2-options-manage-options">
     <?= GridView::widget([
@@ -22,7 +30,7 @@ use \yii\helpers\Html;
             [
                 'header' => $searchModel->getAttributeLabel('value'),
                 'value' => function($data) {
-                    /** @var \kfosoft\yii2\system\models\Option $data */
+                    /** @var OptionModel $data */
                     return $data->getValue();
                 },
                 'filter' => false,
@@ -31,11 +39,12 @@ use \yii\helpers\Html;
             'created_at:datetime',
             'updated_at:datetime',
             [
-                'class' => 'yii\grid\ActionColumn',
+                'class' => ActionColumn::class,
                 'template' => '{update}',
                 'buttons' => [
-                    'update' => function ($url, $model, $key) {
-                        if(!$model->edit){
+                    'update' => function ($url, $model, $key) use ($optionComponent) {
+                        /** @var OptionModel $model */
+                        if (!$model->edit){
                             return '';
                         }
 
@@ -44,7 +53,8 @@ use \yii\helpers\Html;
                             'aria-label' => Yii::t('yii2options', 'Update'),
                             'data-pjax' => '0',
                         ]);
-                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>', [Yii::$app->get('yii2options')->updateAction, 'id' => $model->primaryKey], $options);
+
+                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>', [$optionComponent->updateAction, 'id' => $model->primaryKey], $options);
                     },
                 ],
             ],

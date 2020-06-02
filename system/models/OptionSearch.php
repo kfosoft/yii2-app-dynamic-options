@@ -2,23 +2,22 @@
 
 namespace kfosoft\yii2\system\models;
 
-use \Yii;
-use \yii\base\Model;
-use \yii\data\ActiveDataProvider;
+use yii\base\Model;
+use yii\data\ActiveDataProvider;
 
 /**
  * Option represents the model behind the search form about `kfosoft\yii2\system\models\Option`.
+ *
  * @package kfosoft\yii2\system\models
- * @version 1.0
- * @copyright (c) 2014-2015 KFOSOFT Team <kfosoftware@gmail.com>
- * @author Cyril Turkevich
+ * @version 20.06
+ * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class OptionSearch extends Option
 {
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['key', 'value'], 'safe'],
@@ -28,7 +27,7 @@ class OptionSearch extends Option
     /**
      * @inheritdoc
      */
-    public function scenarios()
+    public function scenarios(): array
     {
         // bypass scenarios() implementation in the parent class
         return Model::scenarios();
@@ -39,7 +38,7 @@ class OptionSearch extends Option
      * @param array $params
      * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search($params): ActiveDataProvider
     {
         $query = self::find();
 

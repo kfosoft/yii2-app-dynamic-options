@@ -1,27 +1,46 @@
 <?php
 namespace kfosoft\yii2\system;
 
-use \Yii;
-use \yii\bootstrap\Widget;
+use Yii;
+use yii\base\InvalidConfigException;
+use yii\bootstrap\Widget;
 
 /**
  * Options Widget.
+ *
  * @package kfosoft\yii2\system\widgets
- * @version 1.0
- * @copyright (c) 2014-2015 KFOSOFT Team <kfosoftware@gmail.com>
- * @author Cyril Turkevich
+ * @version 20.06
+ * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class OptionsWidget extends Widget
 {
     /**
-     * @inheritdoc
+     * @var Option
      */
-    public function run()
+    private $optionComponent;
+
+    /**
+     * {@inheritdoc}
+     * @throws InvalidConfigException
+     */
+    public function init(): void
     {
-        $modelClass = Yii::$app->get('yii2options')->modelSearchClass;
+        parent::init();
+
+        $this->optionComponent = Yii::$app->get(Option::COMPONENT_NAME);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function run(): string
+    {
+        $modelClass = $this->optionComponent->modelSearchClass;
+
+        /** @var models\Option $model */
         $model = new $modelClass();
 
-        return $this->render(Yii::$app->get('yii2options')->manageView, [
+        return $this->render($this->optionComponent->manageView, [
             'dataProvider' => $model->search(Yii::$app->request->get()),
             'searchModel'  => $model,
         ]);

@@ -1,71 +1,114 @@
 <?php
 namespace kfosoft\yii2\system;
 
-use \Yii;
-use \yii\base\BootstrapInterface;
-use \yii\base\Component;
-use \yii\base\Application;
-use \yii\base\Exception;
+use kfosoft\yii2\system\commands\OptionsController;
+use kfosoft\yii2\system\models\OptionSearch;
+use Throwable;
+use Yii;
+use yii\base\BootstrapInterface;
+use yii\base\Component;
+use yii\base\InvalidConfigException;
+use yii\console\Application;
+use yii\db\ActiveRecord;
+use yii\db\BaseActiveRecord;
+use yii\db\Connection;
+use yii\db\Exception as DbException;
 use yii\helpers\ArrayHelper;
 
 /**
  * Application dynamic options.
+ *
  * @package kfosoft\yii2\system
- * @version 1.0
- * @copyright (c) 2014-2015 KFOSOFT Team <kfosoftware@gmail.com>
- * @author Cyril Turkevich
+ * @version 20.06
+ * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class Option extends Component implements BootstrapInterface
 {
-    /** @var array system original params. */
+    public const COMPONENT_NAME = 'yii2options';
+
+    /**
+     * @var array system original params
+     */
     protected $originalParams;
 
-    /** @var array params after parse original params. */
+    /**
+     * @var array params after parse original params
+     */
     protected $options;
 
-    /** @var array cache system params. */
+    /**
+     * @var array cache system params
+     */
     protected $cache;
 
-    /** @var \yii\db\ActiveRecord[] params records. */
+    /**
+     * @var ActiveRecord[] params records
+     */
     protected $models;
 
-    /** @var array result params. */
+    /**
+     * @var array result params
+     */
     protected $params;
 
-    /** @var array cache options. */
+    /**
+     * @var array cache options
+     */
     protected $cacheOptions = [];
 
-    /** @var string table name. */
+    /**
+     * @var string table name
+     */
     public $tableName = 'option';
 
-    /** @var string system params model class. */
-    public $modelClass = '\kfosoft\yii2\system\models\Option';
+    /**
+     * @var string system params model class
+     */
+    public $modelClass = models\Option::class;
 
-    /** @var string system params model search class. */
-    public $modelSearchClass = '\kfosoft\yii2\system\models\OptionSearch';
+    /**
+     * @var string system params model search class
+     */
+    public $modelSearchClass = OptionSearch::class;
 
-    /** @var string system params table key field name. */
+    /**
+     * @var string system params table key field name
+     */
     public $tableKeyField = 'key';
 
-    /** @var string system params table value field name. */
+    /**
+     * @var string system params table value field name
+     */
     public $tableValueField = 'value';
 
-    /** @var string change key. */
+    /**
+     * @var string change key
+     */
     public $cacheKey = 'yii2options';
 
-    /** @var string manage action, for example /admin/options/manage */
+    /**
+     * @var string manage action, for example /admin/options/manage
+     */
     public $manageAction = '';
 
-    /** @var string update action, for example /admin/options/update */
+    /**
+     * @var string update action, for example /admin/options/update
+     */
     public $updateAction = '';
 
-    /** @var string manage view path. */
+    /**
+     * @var string manage view path
+     */
     public $manageView = '@yii2options/views/manageOptions';
 
-    /** @var string update view path. */
+    /**
+     * @var string update view path
+     */
     public $updateView = '@yii2options/views/updateOptions';
 
-    /** @var array translations i18n. */
+    /**
+     * @var array translations i18n
+     */
     public $translations = [
         'class'          => 'yii\i18n\PhpMessageSource',
         'sourceLanguage' => 'en-US',
@@ -73,28 +116,34 @@ class Option extends Component implements BootstrapInterface
         'fileMap'        => [],
     ];
 
-    /** @var string component db connection. */
+    /**
+     * @var string component db connection
+     */
     public $connectionName = 'db';
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     * @throws Throwable
      */
-    public function bootstrap($app)
+    public function bootstrap($app): void
     {
         Yii::setAlias('@yii2options', __DIR__);
-        if ($app instanceof \yii\console\Application) {
+        if ($app instanceof Application) {
+
             $request = $app->request->resolve();
+
             if (preg_match('/migrate\//', $request[0])) {
                 return;
             } elseif (preg_match('/migrate/', $request[0])) {
                 return;
             }
-            $app->controllerMap = ArrayHelper::merge($app->controllerMap,
-                ['options' => '\kfosoft\yii2\system\commands\OptionsController']);
+
+            $app->controllerMap = ArrayHelper::merge($app->controllerMap, ['options' => OptionsController::class]);
         }
 
         $this->originalParams = $app->params;
         $this->setOptions();
+
         if (!Yii::$app->cache->exists($this->cacheKey)) {
             $this->pull();
         } else {
@@ -102,24 +151,26 @@ class Option extends Component implements BootstrapInterface
                 $this->options[$key]['value'] = $cacheOption;
             }
         }
+
         $this->parseParams();
 
         $app->params = $this->params;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
+
         $this->registerTranslations();
     }
 
     /**
      * Register i18n.
      */
-    public function registerTranslations()
+    public function registerTranslations(): void
     {
         Yii::$app->i18n->translations['yii2options'] = $this->translations;
     }
@@ -127,7 +178,7 @@ class Option extends Component implements BootstrapInterface
     /**
      * Set original params.
      */
-    protected function setOptions()
+    protected function setOptions(): void
     {
         foreach ($this->originalParams as $key => $param) {
             if (!is_array($param)) {
@@ -144,16 +195,18 @@ class Option extends Component implements BootstrapInterface
 
     /**
      * Set option.
-     * @param string $key param key.
-     * @param array $param param options.
+     *
+     * @param string $key   param key.
+     * @param array  $param param options.
      */
-    protected function setOption($key, array $param)
+    protected function setOption($key, array $param): void
     {
         $this->options[$key] = $param;
     }
 
     /**
      * Get option.
+     *
      * @param string $key param key.
      * @return mixed
      */
@@ -164,16 +217,18 @@ class Option extends Component implements BootstrapInterface
 
     /**
      * Push all options in sql table.
+     * @throws DbException
      */
-    public function push()
+    public function push(): bool
     {
         $options = [];
         $models = [];
 
-        /** @var \yii\db\BaseActiveRecord $modelClass */
+        /** @var BaseActiveRecord $modelClass */
         $modelClass = $this->modelClass;
         $this->models = $modelClass::findAll('');
 
+        /** @var models\Option $model */
         foreach ($this->models as $model) {
             $models[$model->key] = $model;
         }
@@ -188,10 +243,11 @@ class Option extends Component implements BootstrapInterface
         $this->options = $options;
 
         $transaction = Yii::$app->db->beginTransaction();
+
         try {
             $this->resetDb();
             foreach ($this->options as $key => $option) {
-                /** @var \kfosoft\yii2\system\models\Option $model */
+                /** @var models\Option $model */
                 $model = new $this->modelClass();
                 $model->load($option, '');
                 $model->key = $key;
@@ -199,9 +255,10 @@ class Option extends Component implements BootstrapInterface
                     $transaction->rollBack();
                 }
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Yii::error($e->getMessage());
             $transaction->rollBack();
+
             return false;
         }
 
@@ -214,9 +271,9 @@ class Option extends Component implements BootstrapInterface
     /**
      * Pull all options from sql table.
      */
-    protected function pull()
+    protected function pull(): void
     {
-        /** @var \yii\db\BaseActiveRecord $modelClass */
+        /** @var BaseActiveRecord $modelClass */
         $modelClass = $this->modelClass;
         $this->models = $modelClass::findAll('');
 
@@ -233,7 +290,7 @@ class Option extends Component implements BootstrapInterface
     /**
      * Result event.
      */
-    protected function parseParams()
+    protected function parseParams(): void
     {
         foreach ($this->options as $key => $option) {
             $this->params[$key] = $option['value'];
@@ -242,10 +299,12 @@ class Option extends Component implements BootstrapInterface
 
     /**
      * Reset option table.
+     * @throws InvalidConfigException
+     * @throws DbException
      */
-    public function resetDb()
+    public function resetDb(): void
     {
-        /** @var \yii\db\Connection $db */
+        /** @var Connection $db */
         $db = Yii::$app->get($this->connectionName);
         $db->createCommand($db->queryBuilder->truncateTable($this->tableName))->execute();
         Yii::$app->cache->delete($this->cacheKey);
@@ -254,7 +313,7 @@ class Option extends Component implements BootstrapInterface
     /**
      * Set updated options in cache.
      */
-    public function setCache()
+    public function setCache(): void
     {
         foreach($this->options as $key => $option) {
             $this->cacheOptions[$key] = $option['value'];
@@ -268,7 +327,7 @@ class Option extends Component implements BootstrapInterface
      * @param string $key key of param.
      * @param string $value value of param.
      */
-    public function updateCacheParam($key, $value)
+    public function updateCacheParam($key, $value): void
     {
         $this->options[$key]['value'] = $value;
         $this->setCache();

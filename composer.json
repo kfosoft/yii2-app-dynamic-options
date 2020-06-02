@@ -12,15 +12,15 @@
         "yii2 db params",
         "yii2 db options"
     ],
-    "type": "library",
+    "type": "yii2-extension",
     "authors": [
         {
-            "name": "Cyril Turkevich",
-            "email": "cyril.turkevich@gmail.com"
+            "name": "Kyrylo Checherskyi",
+            "email": "kyrylo.checherskyi@gmail.com"
         }
     ],
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=7.2",
         "kfosoft/php-int-enum-x64": "1.0"
     },
     "autoload": {

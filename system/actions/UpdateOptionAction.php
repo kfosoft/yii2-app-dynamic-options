@@ -2,41 +2,70 @@
 
 namespace kfosoft\yii2\system\actions;
 
-use \Yii;
-use \yii\base\Action;
-use \yii\web\NotFoundHttpException;
+use kfosoft\yii2\system\models\Option as OptionModel;
+use kfosoft\yii2\system\Option as OptionComponent;
+use Yii;
+use yii\base\Action;
+use yii\base\InvalidConfigException;
+use yii\db\ActiveRecord;
+use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 /**
- * @inheritdoc
- * @package app\helpers
- * @version 1.0
- * @copyright (c) 2014-2015 KFOSOFT Team <kfosoftware@gmail.com>
- * @author Cyril Turkevich
+ * Update option action
+ *
+ * @package kfosoft\yii2\system\actions
+ * @version 20.06
+ * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class UpdateOptionAction extends Action
 {
     /**
-     * @inheritdoc
+     * @var OptionComponent
+     */
+    private $optionsComponent;
+
+    /**
+     * {@inheritdoc}
+     * @throws InvalidConfigException
+     */
+    public function init()
+    {
+        parent::init();
+
+        $this->optionsComponent = Yii::$app->get(OptionComponent::COMPONENT_NAME);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws NotFoundHttpException
+     * @throws InvalidConfigException
+     * @return string|Response
      */
     public function run($id)
     {
-        $modelClass = Yii::$app->get('yii2options')->modelClass;
+        /** @var ActiveRecord $modelClass */
+        $modelClass = $this->optionsComponent->modelClass;
+
+        /** @var OptionModel $model */
         $model = $modelClass::findOne($id);
 
         if (!$model) {
             throw new NotFoundHttpException;
         }
+
         $postData = Yii::$app->request->post();
-        if(isset($postData['Option']['value'])){
-            $model->setValue($postData['Option']['value']);
+        if(isset($postData[$model->formName()]['value'])){
+            $model->setValue($postData[$model->formName()]['value']);
             if($model->save()) {
-                Yii::$app->get('yii2options')->updateCacheParam($model->key, $model->value);
-                return $this->controller->redirect([Yii::$app->get('yii2options')->manageAction]);
+                $this->optionsComponent->updateCacheParam($model->key, $model->value);
+                return $this->controller->redirect([$this->optionsComponent->manageAction]);
             }
 
         }
 
-        $view = Yii::$app->get('yii2options')->updateView;
+        $view = $this->optionsComponent->updateView;
+
         $params = [
             'model' => $model
         ];
