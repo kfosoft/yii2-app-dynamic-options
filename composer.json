@@ -1,17 +1,8 @@
 {
     "name": "kfosoft/yii2-app-dynamic-options",
-    "description": "Yii2 Application Dynamic Options",
-    "keywords": [
-        "yii2",
-        "params",
-        "options",
-        "db params",
-        "db options",
-        "yii2 options",
-        "yii2 params",
-        "yii2 db params",
-        "yii2 db options"
-    ],
+    "description": "Yii2 App Dynamic Options",
+    "license": "MIT",
+    "keywords": ["yii2", "extension", "options", "params", "yii2 options", "yii2 params", "yii2 dynamic options"],
     "type": "yii2-extension",
     "authors": [
         {
