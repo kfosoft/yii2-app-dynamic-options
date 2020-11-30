@@ -18,7 +18,6 @@ use yii\helpers\ArrayHelper;
 /**
  * Application dynamic options.
  *
- * @package kfosoft\yii2\system
  * @version 20.06
  * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
@@ -129,7 +128,6 @@ class Option extends Component implements BootstrapInterface
     {
         Yii::setAlias('@yii2options', __DIR__);
         if ($app instanceof Application) {
-
             $request = $app->request->resolve();
 
             if (preg_match('/migrate\//', $request[0])) {
@@ -222,10 +220,10 @@ class Option extends Component implements BootstrapInterface
     public function push(): bool
     {
         $options = [];
-        $models = [];
+        $models  = [];
 
         /** @var BaseActiveRecord $modelClass */
-        $modelClass = $this->modelClass;
+        $modelClass   = $this->modelClass;
         $this->models = $modelClass::findAll('');
 
         /** @var models\Option $model */
@@ -241,8 +239,7 @@ class Option extends Component implements BootstrapInterface
         }
 
         $this->options = $options;
-
-        $transaction = Yii::$app->db->beginTransaction();
+        $transaction   = Yii::$app->db->beginTransaction();
 
         try {
             $this->resetDb();
@@ -251,15 +248,13 @@ class Option extends Component implements BootstrapInterface
                 $model = new $this->modelClass();
                 $model->load($option, '');
                 $model->key = $key;
-                if(!$model->save()){
+                if (!$model->save()) {
                     $transaction->rollBack();
                 }
             }
         } catch (Throwable $e) {
-            Yii::error($e->getMessage());
             $transaction->rollBack();
-
-            return false;
+            throw $e;
         }
 
         $transaction->commit();
@@ -274,7 +269,7 @@ class Option extends Component implements BootstrapInterface
     protected function pull(): void
     {
         /** @var BaseActiveRecord $modelClass */
-        $modelClass = $this->modelClass;
+        $modelClass   = $this->modelClass;
         $this->models = $modelClass::findAll('');
 
         if (!empty($this->models)) {
@@ -315,7 +310,7 @@ class Option extends Component implements BootstrapInterface
      */
     public function setCache(): void
     {
-        foreach($this->options as $key => $option) {
+        foreach ($this->options as $key => $option) {
             $this->cacheOptions[$key] = $option['value'];
         }
 

@@ -2,13 +2,13 @@
 
 namespace kfosoft\yii2\system\models;
 
-use kfosoft\enums\IntegerX64;
+use KFOSOFT\Domain\Enumeration\IntegerX64;
 use kfosoft\yii2\system\Option as OptionComponent;
 use Yii;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 /**
  * @property int     $id         primary key.
@@ -163,31 +163,48 @@ class Option extends ActiveRecord
                 'filter',
                 'filter' => function ($value) {
                     switch (true) {
-                        case is_callable($this->validator) :
+                        case is_callable($this->validator):
                             call_user_func_array($this->validator, [$this, $this->value, $this->key]);
                             break;
-                        case $this->validator === 'string' :
+                        case $this->validator === 'string':
                             if (empty($this->value)) {
-                                $this->addError('value',
-                                    Yii::t('yii2options', 'Param "{param}" cannot be empty', ['param' => $this->key]));
+                                $this->addError(
+                                    'value',
+                                    Yii::t('yii2options', 'Param "{param}" cannot be empty', ['param' => $this->key])
+                                );
                             } elseif (strlen($this->value) > 255) {
-                                $this->addError('value',
-                                    Yii::t('yii2options', 'Param "{param}" length cannot be more than 255 symbols',
-                                        ['param' => $this->key]));
+                                $this->addError(
+                                    'value',
+                                    Yii::t(
+                                        'yii2options',
+                                        'Param "{param}" length cannot be more than 255 symbols',
+                                        ['param' => $this->key]
+                                    )
+                                );
                             }
                             break;
-                        case $this->validator === 'integer' :
+                        case $this->validator === 'integer':
                             if (!preg_match('/^\s*[+-]?\d+\s*$/', "$value")) {
-                                $this->addError('value',
-                                    Yii::t('yii2options', 'Param "{param}" must have type "integer"!',
-                                        ['param' => $this->key]));
+                                $this->addError(
+                                    'value',
+                                    Yii::t(
+                                        'yii2options',
+                                        'Param "{param}" must have type "integer"!',
+                                        ['param' => $this->key]
+                                    )
+                                );
                             } elseif (strlen((string)$this->value) > 255) {
-                                $this->addError('value',
-                                    Yii::t('yii2options', 'Param "{param}" length cannot be more than 255 symbols',
-                                        ['param' => $this->key]));
+                                $this->addError(
+                                    'value',
+                                    Yii::t(
+                                        'yii2options',
+                                        'Param "{param}" length cannot be more than 255 symbols',
+                                        ['param' => $this->key]
+                                    )
+                                );
                             }
                             break;
-                        default :
+                        default:
                             throw new Exception('Undefined validator "' . $this->validator . '"');
                     }
                     return $value;
