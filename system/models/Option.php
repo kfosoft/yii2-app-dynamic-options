@@ -18,7 +18,7 @@ use yii\db\ActiveRecord;
  * @property string  $updated_at option updated at.
  *
  * @package kfosoft\yii2\system\models
- * @version 20.06
+ * @version 21.02
  * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class Option extends ActiveRecord
@@ -74,6 +74,11 @@ class Option extends ActiveRecord
     public $setValue;
 
     /**
+     * @var bool
+     */
+    private $deleted = false;
+
+    /**
      * {@inheritdoc}
      * @throws InvalidConfigException
      */
@@ -81,7 +86,7 @@ class Option extends ActiveRecord
     {
         parent::afterFind();
 
-        $this->loadOption(Yii::$app->get(OptionComponent::COMPONENT_NAME)->getOption($this->key));
+        $this->loadOption(Yii::$app->get(OptionComponent::COMPONENT_NAME)->getOption($this->key)?: []);
 
         $this->value = unserialize(base64_decode($this->value));
 
@@ -268,6 +273,10 @@ class Option extends ActiveRecord
      */
     public function loadOption(array $attributes): self
     {
+        if (empty($attributes)) {
+            $this->deleted = true;
+            return $this;
+        }
         foreach ($attributes as $attribute => $value) {
             if (property_exists($this, $attribute)) {
                 $this->{$attribute} = $value;
@@ -275,5 +284,13 @@ class Option extends ActiveRecord
         }
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDeleted(): bool
+    {
+        return $this->deleted;
     }
 }

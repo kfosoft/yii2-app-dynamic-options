@@ -18,7 +18,7 @@ use yii\helpers\ArrayHelper;
 /**
  * Application dynamic options.
  *
- * @version 20.06
+ * @version 21.02
  * @author (c) KFOSOFT <kfosoftware@gmail.com>
  */
 class Option extends Component implements BootstrapInterface
@@ -224,25 +224,33 @@ class Option extends Component implements BootstrapInterface
 
         /** @var BaseActiveRecord $modelClass */
         $modelClass   = $this->modelClass;
-        $this->models = $modelClass::findAll('');
+        $this->models = $modelClass::find()->all();
 
-        /** @var models\Option $model */
-        foreach ($this->models as $model) {
-            $models[$model->key] = $model;
-        }
-
-        foreach ($this->options as $key => $option) {
-            $options[$key] = $option;
-            if (isset($models[$key])) {
-                $options[$key]['value'] = $models[$key]->value;
-            }
-        }
-
-        $this->options = $options;
         $transaction   = Yii::$app->db->beginTransaction();
 
+
         try {
+            /** @var models\Option $model */
+            foreach ($this->models as $key => $model) {
+                if ($model->isDeleted()) {
+                    $this->models[$key]->delete();
+                    unset($this->models[$key]);
+                    continue;
+                }
+                $models[$model->key] = $model;
+            }
+
+            foreach ($this->options as $key => $option) {
+                $options[$key] = $option;
+                if (isset($models[$key])) {
+                    $options[$key]['value'] = $models[$key]->value;
+                }
+            }
+
+            $this->options = $options;
+
             $this->resetDb();
+
             foreach ($this->options as $key => $option) {
                 /** @var models\Option $model */
                 $model = new $this->modelClass();
